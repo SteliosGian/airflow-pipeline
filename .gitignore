@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# airflow
+/logs/dag_processor_manager/
+/logs/scheduler/
