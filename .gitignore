@@ -129,5 +129,9 @@ dmypy.json
 .pyre/
 
 # airflow
-/logs/dag_processor_manager/
-/logs/scheduler/
+/src/logs/*
+!/src/logs/.gitkeep
+
+# dirs
+/src/data/
+/src/output_data/

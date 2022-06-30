@@ -31,7 +31,7 @@ The airflow pipeline creates a spark session and after that, loads and processes
 
 Image below for reference:
 
-![images/arch-ud.jpg](images/arch-ud.jpg)
+![docs/arch-ud.jpg](docs/arch-ud.jpg)
 
 
 ### Built With
@@ -56,7 +56,7 @@ You can specify the following environment variables:
 To initialize the Airflow database, run:
 
 ```Bash
-docker-compose up airflow-init
+docker-compose build
 ```
 
 To start the Airflow services, run:
