@@ -1,10 +1,10 @@
 import sys
-sys.path.append("/opt/airflow/jobs")
+sys.path.append("/opt/airflow/")
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from pyspark.sql import SparkSession
 from datetime import datetime
-import process_immigration
+from jobs import (process_demographics, process_immigration, process_label, process_temperature)
 
 
 def create_spark_session() -> SparkSession:
@@ -27,12 +27,10 @@ spark.sparkContext.addPyFile("jobs/process_label.py")
 spark.sparkContext.addPyFile("jobs/process_temperature.py")
 
 with DAG(
-    'TEST_DAG_LOCAL',
-    # These args will get passed on to each operator
-    # You can override them on a per-task basis during operator initialization
+    'process_data',
     default_args={
         'depends_on_past': False,
-        'email': ['airflow@example.com'],
+        'email': ['steliosgiannik@gmail.com'],
         'email_on_failure': False,
         'email_on_retry': False,
         # 'retries': 1,
@@ -49,25 +47,59 @@ with DAG(
         # 'sla_miss_callback': yet_another_function,
         # 'trigger_rule': 'all_success'
     },
-    description='Process immigration data',
-    # schedule_interval=timedelta(days=1),
+    description='Process data',
     start_date=datetime(2021, 1, 1),
     catchup=False,
     tags=['data-engineering'],
 ) as dag:
 
-    # t1, t2 and t3 are examples of tasks created by instantiating operators
-    t1 = PythonOperator(
+    process_imig = PythonOperator(
         task_id='process_immigration_data',
         provide_context=True,
         python_callable=process_immigration.process_immigration_data,
         op_kwargs={
             'spark': spark,
-            'input_path': 'data/sas_data/part-00000-b9542815-7a8d-45fc-9c67-c9c5007ad0d4-c000.snappy.parquet',
+            'input_path': 'data/sas_data',
+            'output_path': 'output_data/'
+        },
+        dag=dag
+    )
+
+    process_demog = PythonOperator(
+        task_id='process_demographics_data',
+        provide_context=True,
+        python_callable=process_demographics.process_demog_data,
+        op_kwargs={
+            'spark': spark,
+            'input_path': 'data/us-cities-demographics.csv',
+            'output_path': 'output_data/'
+        },
+        dag=dag
+    )
+
+    process_label = PythonOperator(
+        task_id='process_label_data',
+        provide_context=True,
+        python_callable=process_label.process_label_descriptions,
+        op_kwargs={
+            'spark': spark,
+            'input_path': 'data/I94_SAS_Labels_Descriptions.SAS',
+            'output_path': 'output_data/'
+        },
+        dag=dag
+    )
+
+    process_temperature = PythonOperator(
+        task_id='process_temperature_data',
+        provide_context=True,
+        python_callable=process_temperature.process_temp_data,
+        op_kwargs={
+            'spark': spark,
+            'input_path': 'data/GlobalLandTemperaturesByCity.csv',
             'output_path': 'output_data/'
         },
         dag=dag
     )
 
 
-t1
+[process_imig, process_demog, process_label, process_temperature]
