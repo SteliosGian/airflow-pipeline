@@ -3,13 +3,17 @@ import logging
 from pyspark.sql import SparkSession
 
 
-def process_label_descriptions(spark: SparkSession, input_path: str, output_path: str) -> None:
+def process_label_descriptions(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
     """
     Process the label descriptions
     :param input_path: Input data path
     :param output_path: Output data path
     :return: None
     """
+
+    if spark_session:
+        spark = spark_session
+
     logging.info('Loading labels descriptions file')
     with open(input_path) as file:
         file_contents = file.readlines()

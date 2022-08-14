@@ -16,7 +16,7 @@ def convert_to_date(date):
         return pd.to_timedelta(date, unit='D') + pd.Timestamp('1960-1-1')
 
 
-def process_immigration_data(spark: SparkSession, input_path: str, output_path: str) -> None:
+def process_immigration_data(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
     """
     Process the immigration data
     :param spark: Spark session
@@ -24,6 +24,9 @@ def process_immigration_data(spark: SparkSession, input_path: str, output_path: 
     :param output_path: Output data path
     :return: None
     """
+
+    if spark_session:
+        spark = spark_session
 
     convert_to_date_udf = F.udf(convert_to_date, DateType())
 

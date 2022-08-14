@@ -4,7 +4,7 @@ import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
 
 
-def process_temp_data(spark: SparkSession, input_path: str, output_path: str) -> None:
+def process_temp_data(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
     """
     Process the temperature data
     :param spark: Spark session
@@ -12,6 +12,9 @@ def process_temp_data(spark: SparkSession, input_path: str, output_path: str) ->
     :param output_path: Output data path
     :return: None
     """
+
+    if spark_session:
+        spark = spark_session
 
     logging.info('Loading temperature data')
     df = spark.read.format('csv').options(header=True).load(input_path)
