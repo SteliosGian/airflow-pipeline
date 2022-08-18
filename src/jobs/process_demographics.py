@@ -7,7 +7,7 @@ from pyspark.sql import SparkSession
 def process_demog_data(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
     """
     Process demographics data
-    :param spark: Spark session
+    :param spark_session: Spark session
     :param input_path: Input data path
     :param output_path: Output data path
     :return: None
@@ -44,3 +44,12 @@ def process_demog_data(input_path: str, output_path: str, spark_session: SparkSe
       .write \
       .mode('overwrite') \
       .parquet(path=os.path.join(output_path, 'dim_city_stats'))
+
+
+if __name__ == "__main__":
+    BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
+    input_path = f"s3://{BUCKET_NAME}/src/data/us-cities-demographics.csv"
+    output_path = f"s3://{BUCKET_NAME}/src/output_data/"
+
+    spark = SparkSession.builder.appName("process_demographics").getOrCreate()
+    process_demog_data(input_path=input_path, output_path=output_path, spark_session=spark)

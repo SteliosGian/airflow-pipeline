@@ -1,22 +1,34 @@
 import os
 import logging
+import boto3
 from pyspark.sql import SparkSession
 
 
-def process_label_descriptions(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
+def process_label_descriptions(input_path: str, output_path: str, spark_session: SparkSession = None, bucket: str = None) -> None:
     """
     Process the label descriptions
     :param input_path: Input data path
     :param output_path: Output data path
+    :param spark_session: The spark session
+    :param bucket: S3 bucket
     :return: None
     """
 
     if spark_session:
         spark = spark_session
 
-    logging.info('Loading labels descriptions file')
-    with open(input_path) as file:
-        file_contents = file.readlines()
+    if input_path.startswith('s3'):
+        logging.info('Loading labels descriptions file from S3')
+        s3_client = boto3.client('s3')
+        target_file_path = '/'.join(input_path.split('/')[3:])
+        local_file_path = input_path.split('/')[-1]
+        s3_client.download_file(bucket, target_file_path, local_file_path)
+        with open(local_file_path) as file:
+            file_contents = file.readlines()
+    else:
+        logging.info('Loading labels descriptions file')
+        with open(input_path) as file:
+            file_contents = file.readlines()
 
     logging.info('Creating country code')
     country_code = {}
@@ -50,3 +62,17 @@ def process_label_descriptions(input_path: str, output_path: str, spark_session:
          .write \
          .mode('overwrite') \
          .parquet(path=os.path.join(output_path, 'state_code'))
+
+
+if __name__ == "__main__":
+    BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
+    input_path = f"s3://{BUCKET_NAME}/src/data/I94_SAS_Labels_Descriptions.SAS"
+    output_path = f"s3://{BUCKET_NAME}/src/output_data/"
+
+    spark = SparkSession.builder \
+                        .config("spark.jars.repositories", "https://repos.spark-packages.org/") \
+                        .config("spark.jars.packages", "saurfang:spark-sas7bdat:2.0.0-s_2.11") \
+                        .enableHiveSupport() \
+                        .appName("process_label") \
+                        .getOrCreate()
+    process_label_descriptions(input_path=input_path, output_path=output_path, spark_session=spark, bucket=BUCKET_NAME)
