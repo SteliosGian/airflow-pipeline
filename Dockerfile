@@ -1,6 +1,8 @@
-FROM apache/airflow:2.2.2
+FROM apache/airflow:2.2.2-python3.8
 
 ARG PIPENV_VERSION_=2022.6.7
+ENV PIP_NO_CACHE_DIR=false
+ENV PIPENV_INSTALL_TIMEOUT=3000
 
 USER root
 
