@@ -1,6 +1,9 @@
 # Dirs
 src/logs/*
 !src/logs/.gitkeep
+src/output_data/*
+!src/output_data/.gitkeep
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
