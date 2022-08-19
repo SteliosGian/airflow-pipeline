@@ -26,13 +26,21 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This project creates data pipelines using Airflow.  
-The airflow pipeline creates a spark session and after that, loads and processes the data from a local/S3 directory. After the processing is done, a data quality check is permormed and the processed data are saved to a database.  
+This project creates data pipelines using Airflow both locally and on AWS.  
 
-Image below for reference:
+### Local Run
 
-![docs/arch-ud.jpg](docs/arch-ud.jpg)
+The Airflow pipeline runs in parallel all the spark jobs that are defined in the src/jobs directory.
 
+### AWS
+
+To create the AWS environment, run the scripts inside the aws directory. These scripts will create 4 different stacks that are needed for Airflow.  
+Script cicd_deploy.sh creates the CICD part of the project. For this, AWS Codepipeline is used that sources from AWS Codecommit and deployes on S3. There is also an event rule that triggers the pipeline every time there's a commit.  
+Script code_deploy.sh creates the AWS Codecommit repository to store the code.
+Script data_deploy.sh creates the S3 bucket with versioning and with all public access blocked.
+Finally, script template_deploy.sh creates the core services such as Airflow and different networking services that are needed such as VPN.  
+
+Once all the stacks are deployed successfully, a managed Airflow environment will be created on AWS. Open the Airflow UI and run the dag. By running the dag, an EMR cluster will be created to run the jobs.
 
 ### Built With
 
@@ -43,26 +51,10 @@ Image below for reference:
 
 ## Getting Started
 
-To create the Airflow environment, create a .env file to specify the environment variables.
-You can specify the following environment variables:
-
-* AIRFLOW_IMAGE_NAME: Docker image name used to run Airflow (default: apache/airflow:2.2.2)
-* AIRFLOW_UID: User ID in Airflow containers (default: 50000)
-* AIRFLOW_GID: Airflow Group ID
-* _AIRFLOW_WWW_USER_USERNAME: Username for the administrator account (default: airflow)
-* _AIRFLOW_WWW_USER_PASSWORD: Password for the administrator account (default: airflow)
-* _PIP_ADDITIONAL_REQUIREMENTS: Additional PIP requirements to add when starting all containers (default: '')
-
-To initialize the Airflow database, run:
+To start airflow locally, run:
 
 ```Bash
-docker-compose build
-```
-
-To start the Airflow services, run:
-
-```Bash
-docker-compose up
+bash run-local.sh
 ```
 
 The Airflow UI can be accessed from localhost:8080.
