@@ -14,7 +14,7 @@ def create_spark_session() -> SparkSession:
     """
     spark = SparkSession.builder \
                         .config("spark.jars.repositories", "https://repos.spark-packages.org/") \
-                        .config("spark.jars.packages", "saurfang:spark-sas7bdat:2.0.0-s_2.11") \
+                        .config("spark.jars.packages", "saurfang:spark-sas7bdat:2.1.0-s_2.11") \
                         .enableHiveSupport() \
                         .getOrCreate()
     return spark
@@ -32,7 +32,7 @@ with DAG(
         'depends_on_past': False,
         'email': ['steliosgiannik@gmail.com'],
         'email_on_failure': False,
-        'email_on_retry': False
+        'email_on_retry': False,
     },
     description='Process data',
     start_date=datetime(2021, 1, 1),

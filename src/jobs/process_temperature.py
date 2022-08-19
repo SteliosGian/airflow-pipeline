@@ -1,10 +1,11 @@
 import os
+import argparse
 import logging
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
 
 
-def process_temp_data(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
+def process_temp_data(input_path: str, output_path: str, spark: SparkSession) -> None:
     """
     Process the temperature data
     :param spark_session: Spark session
@@ -12,9 +13,6 @@ def process_temp_data(input_path: str, output_path: str, spark_session: SparkSes
     :param output_path: Output data path
     :return: None
     """
-
-    if spark_session:
-        spark = spark_session
 
     logging.info('Loading temperature data')
     df = spark.read.format('csv').options(header=True).load(input_path)
@@ -36,9 +34,21 @@ def process_temp_data(input_path: str, output_path: str, spark_session: SparkSes
 
 
 if __name__ == "__main__":
-    BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
-    input_path = f"s3://{BUCKET_NAME}/src/data/GlobalLandTemperaturesByCity.csv"
-    output_path = f"s3://{BUCKET_NAME}/src/output_data/"
+    parser = argparse.ArgumentParser(description='Process Temperature')
+
+    parser.add_argument(
+        "--input_path",
+        required=True,
+        help="",
+    )
+
+    parser.add_argument(
+        "--output_path",
+        required=True,
+        help="",
+    )
+
+    args = parser.parse_args()
 
     spark = SparkSession.builder.appName("process_temperature").getOrCreate()
-    process_temp_data(input_path=input_path, output_path=output_path, spark_session=spark)
+    process_temp_data(input_path=args.input_path, output_path=args.output_path, spark=spark)

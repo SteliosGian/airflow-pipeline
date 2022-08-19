@@ -64,14 +64,18 @@ JOB_FLOW_OVERRIDES = {
 SPARK_STEP_IMMIGRATION_DATA = [
     {
         "Name": "Process immigration data",
-        "ActionOnFailure": "CANCEL_AND_WAIT",
+        "ActionOnFailure": "CONTINUE",
         "HadoopJarStep": {
             "Jar": "command-runner.jar",
             "Args": [
                 "spark-submit",
                 "--deploy-mode",
                 "client",
-                "s3://{{ params.BUCKET_NAME }}/{{ params.process_immigration }}"
+                "s3://{{ params.BUCKET_NAME }}/{{ params.process_immigration }}",
+                "--input_path",
+                "{{ params.input_path }}",
+                "--output_path",
+                "{{ params.output_path }}"
             ],
         }
     }
@@ -80,14 +84,18 @@ SPARK_STEP_IMMIGRATION_DATA = [
 SPARK_STEP_DEMOGRAPHICS_DATA = [
     {
         "Name": "Process demographics data",
-        "ActionOnFailure": "CANCEL_AND_WAIT",
+        "ActionOnFailure": "CONTINUE",
         "HadoopJarStep": {
             "Jar": "command-runner.jar",
             "Args": [
                 "spark-submit",
                 "--deploy-mode",
                 "client",
-                "s3://{{ params.BUCKET_NAME }}/{{ params.process_demographics }}"
+                "s3://{{ params.BUCKET_NAME }}/{{ params.process_demographics }}",
+                "--input_path",
+                "{{ params.input_path }}",
+                "--output_path",
+                "{{ params.output_path }}"
             ],
         }
     }
@@ -96,14 +104,20 @@ SPARK_STEP_DEMOGRAPHICS_DATA = [
 SPARK_STEP_LABEL_DATA = [
     {
         "Name": "Process label data",
-        "ActionOnFailure": "CANCEL_AND_WAIT",
+        "ActionOnFailure": "CONTINUE",
         "HadoopJarStep": {
             "Jar": "command-runner.jar",
             "Args": [
                 "spark-submit",
                 "--deploy-mode",
                 "client",
-                "s3://{{ params.BUCKET_NAME }}/{{ params.process_label }}"
+                "s3://{{ params.BUCKET_NAME }}/{{ params.process_label }}",
+                "--input_path",
+                "{{ params.input_path }}",
+                "--output_path",
+                "{{ params.output_path }}",
+                "--bucket_name",
+                "{{ params.bucket_name }}"
             ],
         }
     }
@@ -112,14 +126,18 @@ SPARK_STEP_LABEL_DATA = [
 SPARK_STEP_TEMPERATURE_DATA = [
     {
         "Name": "Process temperature data",
-        "ActionOnFailure": "CANCEL_AND_WAIT",
+        "ActionOnFailure": "CONTINUE",
         "HadoopJarStep": {
             "Jar": "command-runner.jar",
             "Args": [
                 "spark-submit",
                 "--deploy-mode",
                 "client",
-                "s3://{{ params.BUCKET_NAME }}/{{ params.process_temperature }}"
+                "s3://{{ params.BUCKET_NAME }}/{{ params.process_temperature }}",
+                "--input_path",
+                "{{ params.input_path }}",
+                "--output_path",
+                "{{ params.output_path }}"
             ],
         }
     }
@@ -148,7 +166,6 @@ with DAG(
         dag=dag
     )
 
-
     add_immigration_step = EmrAddStepsOperator(
         task_id="process_immigration",
         job_flow_id="{{ task_instance.xcom_pull(task_ids='create_emr_cluster', key='return_value') }}",
@@ -156,7 +173,9 @@ with DAG(
         steps=SPARK_STEP_IMMIGRATION_DATA,
         params={
             "BUCKET_NAME": BUCKET_NAME,
-            "process_immigration": PROCESS_IMMIGRATION
+            "process_immigration": PROCESS_IMMIGRATION,
+            "input_path": f"s3://{BUCKET_NAME}/src/data/sas_data",
+            "output_path": f"s3://{BUCKET_NAME}/src/output_data/"
         },
         dag=dag
     )
@@ -168,7 +187,9 @@ with DAG(
         steps=SPARK_STEP_DEMOGRAPHICS_DATA,
         params={
             "BUCKET_NAME": BUCKET_NAME,
-            "process_demographics": PROCESS_DEMOGRAPHICS
+            "process_demographics": PROCESS_DEMOGRAPHICS,
+            "input_path": f"s3://{BUCKET_NAME}/src/data/us-cities-demographics.csv",
+            "output_path": f"s3://{BUCKET_NAME}/src/output_data/"
         },
         dag=dag
     )
@@ -180,7 +201,10 @@ with DAG(
         steps=SPARK_STEP_LABEL_DATA,
         params={
             "BUCKET_NAME": BUCKET_NAME,
-            "process_label": PROCESS_LABEL
+            "process_label": PROCESS_LABEL,
+            "input_path": f"s3://{BUCKET_NAME}/src/data/I94_SAS_Labels_Descriptions.SAS",
+            "output_path": f"s3://{BUCKET_NAME}/src/output_data/",
+            "bucket_name": BUCKET_NAME
         },
         dag=dag
     )
@@ -192,7 +216,9 @@ with DAG(
         steps=SPARK_STEP_TEMPERATURE_DATA,
         params={
             "BUCKET_NAME": BUCKET_NAME,
-            "process_temperature": PROCESS_TEMPERATURE
+            "process_temperature": PROCESS_TEMPERATURE,
+            "input_path": f"s3://{BUCKET_NAME}/src/data/GlobalLandTemperaturesByCity.csv",
+            "output_path": f"s3://{BUCKET_NAME}/src/output_data/"
         },
         dag=dag
     )
