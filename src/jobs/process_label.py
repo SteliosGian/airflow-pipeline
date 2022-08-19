@@ -1,10 +1,11 @@
 import os
+import argparse
 import logging
 import boto3
 from pyspark.sql import SparkSession
 
 
-def process_label_descriptions(input_path: str, output_path: str, spark_session: SparkSession = None, bucket: str = None) -> None:
+def process_label_descriptions(input_path: str, output_path: str, spark: SparkSession, bucket: str = None) -> None:
     """
     Process the label descriptions
     :param input_path: Input data path
@@ -13,9 +14,6 @@ def process_label_descriptions(input_path: str, output_path: str, spark_session:
     :param bucket: S3 bucket
     :return: None
     """
-
-    if spark_session:
-        spark = spark_session
 
     if input_path.startswith('s3'):
         logging.info('Loading labels descriptions file from S3')
@@ -65,9 +63,27 @@ def process_label_descriptions(input_path: str, output_path: str, spark_session:
 
 
 if __name__ == "__main__":
-    BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
-    input_path = f"s3://{BUCKET_NAME}/src/data/I94_SAS_Labels_Descriptions.SAS"
-    output_path = f"s3://{BUCKET_NAME}/src/output_data/"
+    parser = argparse.ArgumentParser(description='Process Label')
+
+    parser.add_argument(
+        "--input_path",
+        required=True,
+        help="",
+    )
+
+    parser.add_argument(
+        "--output_path",
+        required=True,
+        help="",
+    )
+
+    parser.add_argument(
+        "--bucket_name",
+        required=True,
+        help="",
+    )
+
+    args = parser.parse_args()
 
     spark = SparkSession.builder \
                         .config("spark.jars.repositories", "https://repos.spark-packages.org/") \
@@ -75,4 +91,4 @@ if __name__ == "__main__":
                         .enableHiveSupport() \
                         .appName("process_label") \
                         .getOrCreate()
-    process_label_descriptions(input_path=input_path, output_path=output_path, spark_session=spark, bucket=BUCKET_NAME)
+    process_label_descriptions(input_path=args.input_path, output_path=args.output_path, spark=spark, bucket=args.bucket_name)

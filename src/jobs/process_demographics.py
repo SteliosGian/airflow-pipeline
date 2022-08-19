@@ -1,19 +1,17 @@
+import argparse
 import os
 import logging
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
 
 
-def process_demog_data(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
+def process_demog_data(input_path: str, output_path: str, spark: SparkSession) -> None:
     """
     Process demographics data
-    :param spark_session: Spark session
     :param input_path: Input data path
     :param output_path: Output data path
     :return: None
     """
-    if spark_session:
-        spark = spark_session
 
     logging.info('Loading demographics data')
     df = spark.read.format('csv').options(header=True, delimiter=';').load(input_path)
@@ -47,9 +45,23 @@ def process_demog_data(input_path: str, output_path: str, spark_session: SparkSe
 
 
 if __name__ == "__main__":
-    BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
-    input_path = f"s3://{BUCKET_NAME}/src/data/us-cities-demographics.csv"
-    output_path = f"s3://{BUCKET_NAME}/src/output_data/"
+    parser = argparse.ArgumentParser(description='Process Demographics')
+
+    parser.add_argument(
+        "--input_path",
+        required=True,
+        help="",
+    )
+
+    parser.add_argument(
+        "--output_path",
+        required=True,
+        help="",
+    )
+
+    args = parser.parse_args()
 
     spark = SparkSession.builder.appName("process_demographics").getOrCreate()
-    process_demog_data(input_path=input_path, output_path=output_path, spark_session=spark)
+    process_demog_data(input_path=args.input_path,
+                       output_path=args.output_path,
+                       spark=spark)

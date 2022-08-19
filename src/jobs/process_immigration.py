@@ -1,5 +1,6 @@
 import logging
 import os
+import argparse
 import pandas as pd
 import pyspark.sql.functions as F
 from pyspark.sql.types import DateType
@@ -16,7 +17,7 @@ def convert_to_date(date):
         return pd.to_timedelta(date, unit='D') + pd.Timestamp('1960-1-1')
 
 
-def process_immigration_data(input_path: str, output_path: str, spark_session: SparkSession = None) -> None:
+def process_immigration_data(input_path: str, output_path: str, spark: SparkSession) -> None:
     """
     Process the immigration data
     :param spark_session: Spark session
@@ -24,9 +25,6 @@ def process_immigration_data(input_path: str, output_path: str, spark_session: S
     :param output_path: Output data path
     :return: None
     """
-
-    if spark_session:
-        spark = spark_session
 
     convert_to_date_udf = F.udf(convert_to_date, DateType())
 
@@ -82,9 +80,21 @@ def process_immigration_data(input_path: str, output_path: str, spark_session: S
 
 
 if __name__ == "__main__":
-    BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
-    input_path = f"s3://{BUCKET_NAME}/src/data/sas_data"
-    output_path = f"s3://{BUCKET_NAME}/src/output_data/"
+    parser = argparse.ArgumentParser(description='Process Immigration')
+
+    parser.add_argument(
+        "--input_path",
+        required=True,
+        help="",
+    )
+
+    parser.add_argument(
+        "--output_path",
+        required=True,
+        help="",
+    )
+
+    args = parser.parse_args()
 
     spark = SparkSession.builder.appName("process_immigration").getOrCreate()
-    process_immigration_data(input_path=input_path, output_path=output_path, spark_session=spark)
+    process_immigration_data(input_path=args.input_path, output_path=args.output_path, spark=spark)
