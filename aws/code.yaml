@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Reco System Code Repo CloudFormation Stack"
+
+Parameters:
+  CodeCommitRepositoryName:
+    Description: Python CodeCommit Repository name
+    Type: String
+
+Resources:
+# ###########################################
+# # CodeCommit Python Repository
+# ###########################################
+  CodeCommitPythonRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Ref CodeCommitRepositoryName

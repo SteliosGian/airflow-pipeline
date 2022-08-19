@@ -1,0 +1,38 @@
+[
+    {
+         "ParameterKey": "S3BucketName",
+         "ParameterValue": "st-proj-airflow-bucket-data-eng"
+    },
+    {
+        "ParameterKey": "AirflowName",
+        "ParameterValue": "st-proj-airflow-env"
+    },
+    {
+        "ParameterKey": "AirflowMaxWorkers",
+        "ParameterValue": "3"
+    },
+    {
+        "ParameterKey": "AirflowMinWorkers",
+        "ParameterValue": "1"
+    },
+    {
+        "ParameterKey": "RedshiftDBName",
+        "ParameterValue": "st-proj-airflow-database"
+    },
+    {
+        "ParameterKey": "PipelineName",
+        "ParameterValue": "st-proj-airflow-pipeline"
+    },
+    {
+        "ParameterKey": "CodeCommitRepositoryName",
+        "ParameterValue": "st-proj-airflow-repo"
+    },
+    {
+        "ParameterKey": "DagPath",
+        "ParameterValue": "src/aws_dags"
+    },
+    {
+        "ParameterKey": "RequirementsPath",
+        "ParameterValue": "airflow_requirements.txt"
+    }
+ ]
