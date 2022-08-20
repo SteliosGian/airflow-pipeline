@@ -28,7 +28,7 @@
 
 This project creates data pipelines using Airflow both locally and on AWS.  
 
-### Local Run
+### Local
 
 The Airflow pipeline runs in parallel all the spark jobs that are defined in the src/jobs directory.
 
@@ -47,11 +47,14 @@ Once all the stacks are deployed successfully, a managed Airflow environment wil
 * [Docker](https://www.docker.com/)
 * [Airflow](https://airflow.apache.org/)
 * [Pipenv](https://pipenv-fork.readthedocs.io/en/latest/)
+* [Spark](https://spark.apache.org/)
+* [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
+* [AWS EMR](https://aws.amazon.com/emr/)
 
 
 ## Getting Started
 
-To start airflow locally, run:
+To start Airflow locally, run:
 
 ```Bash
 bash run-local.sh
@@ -67,12 +70,21 @@ docker-compose down --volumes --rmi all
 
 ### Prerequisites
 
+Docker must in installed to run the docker files.
 
 ### Notes
 
 
 ## Roadmap
 
+<ul>
+  <li>Set local Airflow &#9745; </li>
+  <li>Install PySpark in Airflow image &#9745; </li>
+  <li>Create local Airflow jobs &#9745; </li>
+  <li>Create Airflow environment on AWS &#9745; </li>
+  <li>Create Airflow Pyspark jobs on AWS EMR &#9745; </li>
+  <li>Save EMR results on AWS Redshift </li>
+</ul>
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-white.svg?
 [linkedin-url]: https://linkedin.com/in/stelios-giannikis
