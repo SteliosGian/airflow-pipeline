@@ -52,6 +52,27 @@ Once all the stacks are deployed successfully, a managed Airflow environment wil
 * [AWS EMR](https://aws.amazon.com/emr/)
 
 
+### Datasets
+
+#### I94 Immigration
+
+The I94 Immigration dataset contains statistics regarding the international visitor arrivals split by world regions and countries, type of visa, mode of transportation, age groups, states visited, and the ports of entry.  
+The dataset can be found <a href="https://www.trade.gov/national-travel-and-tourism-office" target="_blank">here</a>.
+
+#### World Temperature
+
+The World Temperature dataset contains data regarding the monthly average temperature by country. This dataset is taken from <a href="https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data" target="_blank">Kaggle</a>.
+
+#### U.S. City Demographic
+
+The U.S. City Demographic dataset contains demographic information of US cities and census-designated places with a population greater or equal to 65,000.  
+More about the dataset can be found here <a href="https://public.opendatasoft.com/explore/dataset/us-cities-demographics/export/" target="_blank">here</a>.
+
+#### Airport Code
+
+A simple table of Airport codes and corresponding cities. More about the dataset can be found <a href="https://datahub.io/core/airport-codes#data" target="_blank">here</a>.
+
+
 ## Getting Started
 
 To start Airflow locally, run:
