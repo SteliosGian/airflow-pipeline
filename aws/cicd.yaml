@@ -9,7 +9,7 @@ Parameters:
     Description: CodePipeline name
     Type: String
   CodeCommitRepositoryName:
-    Description: Python CodeCommit Repository name
+    Description: CodeCommit Repository name
     Type: String
 
 Resources:

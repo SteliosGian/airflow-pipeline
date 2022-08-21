@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Reco System Code Repo CloudFormation Stack"
+Description: "Airflow Code Repository CloudFormation Stack"
 
 Parameters:
   CodeCommitRepositoryName:
-    Description: Python CodeCommit Repository name
+    Description: CodeCommit Repository name
     Type: String
 
 Resources:
