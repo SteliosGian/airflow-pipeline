@@ -3,7 +3,7 @@ src/logs/*
 !src/logs/.gitkeep
 src/output_data/*
 !src/output_data/.gitkeep
-# src/data/*
+src/data/GlobalLandTemperaturesByCity.csv
 !src/data/.gitkeep
 .vscode
 
