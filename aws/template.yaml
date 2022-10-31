@@ -20,6 +20,12 @@ Parameters:
   RequirementsPath:
     Description: Path of the requirements file
     Type: String
+  RedshiftDBName:
+    Description: Redshift Database name
+    Type: String
+  RedshiftMasterUserPassword:
+    Description: Redshift Database password
+    Type: String
 
 Resources:
 ###########################################
@@ -70,6 +76,10 @@ Resources:
               Service:
                 - airflow.amazonaws.com
                 - airflow-env.amazonaws.com
+                - s3.amazonaws.com
+                - redshift.amazonaws.com
+                - redshift-serverless.amazonaws.com
+                - iam.amazonaws.com
             Action:
               - 'sts:AssumeRole'
       Path: /
@@ -161,13 +171,36 @@ Resources:
                 Action:
                   - kms:Decrypt
                   - kms:DescribeKey
-                  - "kms:GenerateDataKey*"
+                  - kms:GenerateDataKey*
                   - kms:Encrypt
                 NotResource: !Sub "arn:aws:kms:*:${AWS::AccountId}:key/*"
                 Condition:
                   StringLike:
                     "kms:ViaService":
                       - !Sub "sqs.${AWS::Region}.amazonaws.com"
+              - Effect: Allow
+                Action:
+                  - redshift-data:ExecuteStatement
+                  - redshift-data:BatchExecuteStatement
+                  - redshift-data:CancelStatement
+                  - redshift-data:ListStatements
+                  - redshift-data:ListDatabases
+                  - redshift-data:ListSchemas
+                  - redshift-data:ListTables
+                  - redshift-data:DescribeTable
+                  - redshift-data:DescribeStatement
+                  - redshift:GetClusterCredentials
+                  - redshift:ListSchemas
+                  - redshift:ListTables
+                  - redshift:ListDatabases
+                  - redshift:ExecuteQuery
+                  - redshift:FetchResults
+                  - redshift:DescribeClusters
+                  - redshift:DescribeQuery
+                  - redshift:DescribeTable
+                  - secretsmanager:*
+                  - redshift:*
+                Resource: "*"
 
 
 ############################################
@@ -344,3 +377,114 @@ Resources:
       GroupId: !Ref SecurityGroup
       IpProtocol: "-1"
       CidrIp: "0.0.0.0/0"
+
+
+###########################################
+# Redshift
+###########################################
+  Redshift:
+    Type: AWS::Redshift::Cluster
+    Properties:
+      ClusterIdentifier: data-cluster-1
+      ClusterType: single-node
+      DBName: !Ref RedshiftDBName
+      Encrypted: true
+      IamRoles: 
+        - Fn::GetAtt: [ RedshiftRole, Arn ]
+        - Fn::GetAtt: [ AirflowRole, Arn ]
+      MasterUsername: "master"
+      MasterUserPassword: !Ref RedshiftMasterUserPassword
+      NodeType: "dc2.large"
+      ClusterSubnetGroupName: !Ref RedshiftSubnet
+      VpcSecurityGroupIds:
+        - !GetAtt SecurityGroup.GroupId
+
+  RedshiftRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - redshift.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: redshift-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                  - s3:ListAllMyBuckets
+                  - s3:GetBucketCors
+                  - s3:PutBucketCors
+                  - s3:GetObject
+                  - s3:GetAccountPublicAccessBlock
+                  - s3:GetBucketAcl
+                  - s3:GetBucketPublicAccessBlock
+                  - s3:GetBucketVersioning
+                  - kms:Decrypt
+                  - kms:DescribeKey
+                  - kms:GenerateDataKey*
+                  - kms:Encrypt
+                Resource:
+                - !Join ["", ["arn:aws:s3:::", !Ref S3BucketName]]
+                - !Join ["", ["arn:aws:s3:::", !Ref S3BucketName, "/*"]]
+              - Effect: Allow
+                Action:
+                  - elasticmapreduce:AddJobFlowSteps
+                  - elasticmapreduce:AddTags
+                  - elasticmapreduce:AddInstanceFleet
+                  - elasticmapreduce:AddInstanceGroups
+                  - elasticmapreduce:AddJobFlowSteps
+                  - elasticmapreduce:CancelSteps
+                  - elasticmapreduce:DescribeCluster
+                  - elasticmapreduce:DescribeJobFlows
+                  - elasticmapreduce:DescribeStep
+                  - elasticmapreduce:ListSteps
+                  - elasticmapreduce:ModifyCluster
+                  - elasticmapreduce:ModifyInstanceFleet
+                  - elasticmapreduce:ModifyInstanceGroups
+                  - elasticmapreduce:RunJobFlow
+                  - elasticmapreduce:TerminateJobFlows
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                  - iam:CreateServiceLinkedRole
+                  - iam:PutRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:DeleteServiceLinkedRole
+                  - iam:GetServiceLinkedRoleDeletionStatus
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogGroups
+                Resource: "*"
+              - Effect: Allow
+                Action: cloudwatch:PutMetricData
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:DescribeKey
+                  - kms:GenerateDataKey*
+                  - kms:Encrypt
+                NotResource: !Sub "arn:aws:kms:*:${AWS::AccountId}:key/*"
+                Condition:
+                  StringLike:
+                    "kms:ViaService":
+                      - !Sub "sqs.${AWS::Region}.amazonaws.com"
+  
+  RedshiftSubnet:
+    Type: AWS::Redshift::ClusterSubnetGroup
+    Properties:
+      Description: Redshift cluster subnet
+      SubnetIds:
+        - !Ref PrivateSubnetOne
+        - !Ref PrivateSubnetTwo

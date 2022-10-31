@@ -8,7 +8,7 @@ Parameters:
 
 Resources:
 # ###########################################
-# # CodeCommit Python Repository
+# # CodeCommit Repository
 # ###########################################
   CodeCommitPythonRepository:
     Type: AWS::CodeCommit::Repository
