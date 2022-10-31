@@ -112,9 +112,9 @@ CREATE_STATE_CODE = (
 CREATE_DIM_IMMIGRATION_TEMPERATURE = (
     """
     CREATE TABLE IF NOT EXISTS public.dim_immigration_temperature (
-        dt VARCHAR NOT NULL,
-        avg_temperature NUMERIC,
-        avg_temperature_uncertainty NUMERIC,
+        dt INTEGER NOT NULL,
+        avg_temperature FLOAT,
+        avg_temperature_uncertainty FLOAT,
         city VARCHAR,
         country VARCHAR,
         year INTEGER,
