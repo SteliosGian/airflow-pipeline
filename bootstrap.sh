@@ -1,6 +1,7 @@
 #!/bin/bash
  
-BUCKET_NAME=st-proj-airflow-bucket-data-eng
+ # Add bucket name
+BUCKET_NAME=
 
 set -x 
  
