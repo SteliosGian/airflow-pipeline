@@ -1,7 +1,12 @@
+"""
+Process demographics data
+"""
+
 import argparse
 import os
 import logging
 import pyspark.sql.functions as F
+from pyspark.sql.types import LongType, FloatType
 from pyspark.sql import SparkSession
 
 
@@ -10,6 +15,7 @@ def process_demog_data(input_path: str, output_path: str, spark: SparkSession) -
     Process demographics data
     :param input_path: Input data path
     :param output_path: Output data path
+    :param spark: Spark session
     :return: None
     """
 
@@ -24,9 +30,14 @@ def process_demog_data(input_path: str, output_path: str, spark: SparkSession) -
       .withColumnRenamed('Number of Veterans', 'num_veterans') \
       .withColumnRenamed('Foreign-born', 'foreign_born') \
       .withColumnRenamed('Race', 'race') \
+      .withColumn("male_population", F.col('male_population').cast('int')) \
+      .withColumn("female_population", F.col('female_population').cast('int')) \
+      .withColumn("num_veterans", F.col('num_veterans').cast('int')) \
+      .withColumn("foreign_born", F.col('foreign_born').cast('int')) \
       .select(['city', 'state', 'male_population', 'female_population', 'num_veterans', 'foreign_born', 'race']) \
       .distinct() \
       .withColumn('population_id', F.monotonically_increasing_id()) \
+      .withColumn("population_id", F.col('population_id').cast(LongType())) \
       .write \
       .mode('overwrite') \
       .parquet(path=os.path.join(output_path, 'dim_city_population'))
@@ -36,9 +47,12 @@ def process_demog_data(input_path: str, output_path: str, spark: SparkSession) -
       .withColumnRenamed('State', 'state') \
       .withColumnRenamed('Median Age', 'median_age') \
       .withColumnRenamed('Average Household Size', 'avg_household_size') \
+      .withColumn("median_age", F.col('median_age').cast(FloatType())) \
+      .withColumn("avg_household_size", F.col('avg_household_size').cast(FloatType())) \
       .select(['city', 'state', 'median_age', 'avg_household_size']) \
       .distinct() \
       .withColumn('stat_id', F.monotonically_increasing_id()) \
+      .withColumn("stat_id", F.col('stat_id').cast(LongType())) \
       .write \
       .mode('overwrite') \
       .parquet(path=os.path.join(output_path, 'dim_city_stats'))

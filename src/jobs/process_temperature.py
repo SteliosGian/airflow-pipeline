@@ -1,16 +1,21 @@
+"""
+Process temperature data
+"""
+
 import os
 import argparse
 import logging
 import pyspark.sql.functions as F
+from pyspark.sql.types import FloatType
 from pyspark.sql import SparkSession
 
 
 def process_temp_data(input_path: str, output_path: str, spark: SparkSession) -> None:
     """
     Process the temperature data
-    :param spark_session: Spark session
     :param input_path: Input data path
     :param output_path: Output data path
+    :param spark: Spark session
     :return: None
     """
 
@@ -28,9 +33,13 @@ def process_temp_data(input_path: str, output_path: str, spark: SparkSession) ->
       .withColumn('dt', F.to_date(F.col('dt'))) \
       .withColumn('year', F.year(F.col('dt'))) \
       .withColumn('month', F.month(F.col('dt'))) \
+      .withColumn('avg_temperature', F.col('avg_temperature').cast(FloatType())) \
+      .withColumn('avg_temperature_uncertainty', F.col('avg_temperature_uncertainty').cast(FloatType())) \
+      .withColumn('year', F.col('year').cast('int')) \
+      .withColumn('month', F.col('month').cast('int')) \
       .write \
       .mode('overwrite') \
-      .parquet(path=os.path.join(output_path, 'dim_immmigration_temperature'))
+      .parquet(path=os.path.join(output_path, 'dim_immigration_temperature'))
 
 
 if __name__ == "__main__":

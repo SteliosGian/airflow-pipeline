@@ -1,3 +1,7 @@
+"""
+Process label data
+"""
+
 import os
 import argparse
 import logging
@@ -10,7 +14,7 @@ def process_label_descriptions(input_path: str, output_path: str, spark: SparkSe
     Process the label descriptions
     :param input_path: Input data path
     :param output_path: Output data path
-    :param spark_session: The spark session
+    :param spark: The spark session
     :param bucket: S3 bucket
     :return: None
     """
