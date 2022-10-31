@@ -1,17 +1,18 @@
-import sys
-sys.path.append("/opt/airflow/")
+from helpers import create_tables, copy_tables, conf
 from airflow import DAG
 from airflow.contrib.operators.emr_create_job_flow_operator import EmrCreateJobFlowOperator
 from airflow.contrib.operators.emr_add_steps_operator import EmrAddStepsOperator
 from airflow.contrib.sensors.emr_step_sensor import EmrStepSensor
 from airflow.contrib.operators.emr_terminate_job_flow_operator import EmrTerminateJobFlowOperator
+from airflow.providers.amazon.aws.operators.redshift import RedshiftSQLOperator
 from datetime import datetime
 
-BUCKET_NAME = 'st-proj-airflow-bucket-data-eng'
+BUCKET_NAME = conf.BUCKET_NAME
 PROCESS_IMMIGRATION = 'src/jobs/process_immigration.py'
 PROCESS_DEMOGRAPHICS = 'src/jobs/process_demographics.py'
 PROCESS_LABEL = 'src/jobs/process_label.py'
 PROCESS_TEMPERATURE = 'src/jobs/process_temperature.py'
+AIFRLOW_ROLE = conf.IAM_REDSHIFT_ROLE
 
 JOB_FLOW_OVERRIDES = {
     "Name": "Data Processing",
@@ -259,9 +260,166 @@ with DAG(
         dag=dag
     )
 
+    create_tables_dim_city_population = RedshiftSQLOperator(
+        task_id='create_tables_dim_city_population',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_DIM_CITY_POPULATION
+    )
+
+    create_tables_dim_city_stats = RedshiftSQLOperator(
+        task_id='create_tables_dim_city_stats',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_DIM_CITY_STATS
+    )
+
+    create_tables_fact_immigration = RedshiftSQLOperator(
+        task_id='create_tables_fact_immigration',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_FACT_IMMIGRATION
+    )
+
+    create_tables_dim_immigration_personal = RedshiftSQLOperator(
+        task_id='create_tables_dim_immigration_personal',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_DIM_IMMIGRATION_PERSONAL
+    )
+
+    create_tables_dim_immigration_airline = RedshiftSQLOperator(
+        task_id='create_tables_dim_immigration_airline',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_DIM_IMMIGRATION_AIRLINE
+    )
+
+    create_tables_country_code = RedshiftSQLOperator(
+        task_id='create_tables_country_code',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_COUNTRY_CODE
+    )
+
+    create_tables_city_code = RedshiftSQLOperator(
+        task_id='create_tables_city_code',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_CITY_CODE
+    )
+
+    create_tables_state_code = RedshiftSQLOperator(
+        task_id='create_tables_state_code',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_STATE_CODE
+    )
+
+    create_tables_dim_immigration_temperature = RedshiftSQLOperator(
+        task_id='create_tables_dim_immigration_temperature',
+        redshift_conn_id='redshift_default',
+        sql=create_tables.CREATE_DIM_IMMIGRATION_TEMPERATURE
+    )
+
+    insert_dim_city_population = RedshiftSQLOperator(
+        task_id='insert_dim_city_population',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_DIM_CITY_POPULATION,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/dim_city_population/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_dim_city_stats = RedshiftSQLOperator(
+        task_id='insert_dim_city_stats',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_DIM_CITY_STATS,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/dim_city_stats/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_fact_immigration = RedshiftSQLOperator(
+        task_id='insert_fact_immigration',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_FACT_IMMIGRATION,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/fact_immigration/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_dim_immigration_personal = RedshiftSQLOperator(
+        task_id='insert_dim_immigration_personal',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_DIM_IMMIGRATION_PERSONAL,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/dim_immigration_personal/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_dim_immigration_airline = RedshiftSQLOperator(
+        task_id='insert_dim_immigration_airline',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_DIM_IMMIGRATION_AIRLINE,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/dim_immigration_airline/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_country_code = RedshiftSQLOperator(
+        task_id='insert_country_code',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_COUNTRY_CODE,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/country_code/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_city_code = RedshiftSQLOperator(
+        task_id='insert_city_code',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_CITY_CODE,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/city_code/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_state_code = RedshiftSQLOperator(
+        task_id='insert_state_code',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_STATE_CODE,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/state_code/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
+    insert_dim_immigration_temperature = RedshiftSQLOperator(
+        task_id='insert_dim_immigration_temperature',
+        redshift_conn_id='redshift_default',
+        sql=copy_tables.LOAD_DIM_IMMIGRATION_TEMPERATURE,
+        params={
+                'location': f"s3://{BUCKET_NAME}/src/output_data/dim_immigration_temperature/",
+                'iam_role': AIFRLOW_ROLE
+        }
+    )
+
     create_emr_cluster >> [add_immigration_step, add_demographics_step, add_label_step, add_temperature_step]
     add_immigration_step >> check_immigration
     add_demographics_step >> check_demographics
     add_label_step >> check_label
     add_temperature_step >> check_temperature
     [check_immigration, check_demographics, check_label, check_temperature] >> terminate_emr_cluster
+    terminate_emr_cluster >> [create_tables_dim_city_population, create_tables_dim_city_stats,
+                              create_tables_fact_immigration, create_tables_dim_immigration_personal,
+                              create_tables_dim_immigration_airline, create_tables_country_code, create_tables_city_code,
+                              create_tables_state_code, create_tables_dim_immigration_temperature]
+    create_tables_dim_city_population >> insert_dim_city_population
+    create_tables_dim_city_stats >> insert_dim_city_stats
+    create_tables_fact_immigration >> insert_fact_immigration
+    create_tables_dim_immigration_personal >> insert_dim_immigration_personal
+    create_tables_dim_immigration_airline >> insert_dim_immigration_airline
+    create_tables_country_code >> insert_country_code
+    create_tables_city_code >> insert_city_code
+    create_tables_state_code >> insert_state_code
+    create_tables_dim_immigration_temperature >> insert_dim_immigration_temperature
